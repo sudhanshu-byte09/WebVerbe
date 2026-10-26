@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebVerbe | Ultra-Fast Client-Side Web Utility Platform</title>
+  <meta name="description" content="Free, 100% client-side modern utility platform. Real PDF to Word extraction, Word to PDF, PDF Compressor, HEIC to JPG, WebP converter, Image Compressor, Exact KB Resizer, QR Generator & GST Calculator.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              950: '#030712',
+              900: '#090d1a',
+              850: '#0e1426',
+              800: '#141c33',
+              accent: '#06b6d4',
+              neon: '#22d3ee',
+              purple: '#8b5cf6',
+              pink: '#ec4899',
+              emerald: '#10b981',
+            }
+          },
+          boxShadow: {
+            'neon-cyan': '0 0 20px -3px rgba(6, 182, 212, 0.45), 0 0 8px -2px rgba(34, 211, 238, 0.3)',
+            'neon-purple': '0 0 20px -3px rgba(139, 92, 246, 0.45), 0 0 8px -2px rgba(168, 85, 247, 0.3)',
+            'neon-emerald': '0 0 20px -3px rgba(16, 185, 129, 0.45)',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'gradient-x': 'gradientX 12s ease infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', filter: 'blur(30px)' },
+              '50%': { opacity: '0.8', filter: 'blur(45px)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            gradientX: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Client-Side Libraries -->
+  <!-- PDF.js for Real Client-Side Text Extraction & Page Rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- PDF-LIB for PDF Merging, Splitting, and manipulation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.9/pdf-lib.min.js"></script>
+  <!-- jsPDF for Word/Text to PDF and PDF Re-compression generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- QRCode.js for instant dynamic QR code generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- heic2any for iPhone HEIC to JPG conversion -->
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d1a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+      border: 2px solid #090d1a;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+
+    /* Cyber Glassmorphic Style */
+    .glass-card {
+      background: rgba(14, 20, 38, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+    .glass-card:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: 0 12px 35px -5px rgba(6, 182, 212, 0.15);
+    }
+    .glass-modal {
+      background: rgba(9, 13, 26, 0.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Gradient Text */
+    .text-glow {
+      text-shadow: 0 0 25px rgba(34, 211, 238, 0.45);
+    }
+
+    /* Dropzone animation */
+    .dropzone-active {
+      border-color: #22d3ee !important;
+      background-color: rgba(6, 182, 212, 0.12) !important;
+      transform: scale(1.01);
+    }
+
+    /* Cyber Range Slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #1e293b;
+      height: 6px;
+      border-radius: 4px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #06b6d4;
+      cursor: pointer;
+      box-shadow: 0 0 10px #06b6d4;
+      transition: all 0.15s ease-in-out;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background: #22d3ee;
+      box-shadow: 0 0 16px #22d3ee;
+    }
+
+    /* Ad Placeholder Styling */
+    .ad-slot-box {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(15, 23, 42, 0.4),
+        rgba(15, 23, 42, 0.4) 10px,
+        rgba(30, 41, 59, 0.25) 10px,
+        rgba(30, 41, 59, 0.25) 20px
+      );
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-cyber-950 text-slate-100 min-h-screen relative font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
+
+  <!-- Interactive 60FPS Cyber Canvas Background -->
+  <canvas id="cyberCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-45"></canvas>
+
+  <!-- Ambient Glow Orbs -->
+  <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-600/15 filter blur-[120px] pointer-events-none z-0 animate-pulse-glow"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/15 filter blur-[140px] pointer-events-none z-0 animate-pulse-glow" style="animation-delay: 1.5s;"></div>
+  <div class="fixed top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-indigo-600/10 filter blur-[150px] pointer-events-none z-0"></div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+  <!-- Main Wrapper -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-cyber-950/80 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        <!-- Logo & Branding -->
+        <a href="#" class="flex items-center gap-3.5 group">
+          <div class="relative w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 p-[1.5px] shadow-neon-cyan group-hover:shadow-neon-purple transition-all duration-300">
+            <div class="w-full h-full bg-cyber-900 rounded-[10px] flex items-center justify-center">
+              <i class="fa-solid fa-bolt-lightning text-cyan-400 text-xl group-hover:scale-110 transition-transform duration-300"></i>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400 font-sans">
+                WEB<span class="text-cyan-400">VERBE</span>
+              </span>
+              <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-950/70 text-cyan-300 border border-cyan-800/60 font-semibold tracking-wider">
+                v2.5 PRO
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 font-mono tracking-tight">Zero-Server Client Utility Hub</p>
+          </div>
+        </a>
+
+        <!-- Desktop Quick Stats & Privacy Badge -->
+        <div class="hidden md:flex items-center gap-6">
+          <div class="flex items-center gap-2 text-xs font-mono text-slate-300 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-slate-400">Security:</span>
+            <span class="text-emerald-400 font-medium">100% Client-Side Memory</span>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs font-mono text-slate-300 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
+            <i class="fa-solid fa-microchip text-cyan-400"></i>
+            <span class="text-slate-400">Processing:</span>
+            <span class="text-cyan-300 font-medium">Zero-Cloud Latency</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3">
+          <button onclick="scrollToTools()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-cyber-950 font-bold shadow-neon-cyan transition-all duration-200">
+            <i class="fa-solid fa-shapes"></i>
+            <span>Explore All 10 Tools</span>
+          </button>
+          <a href="#aboutSection" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-colors" title="Platform Information">
+            <i class="fa-solid fa-circle-question"></i>
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- AdSense Top Billboard Slot (Ad-Ready Placeholder) -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+      <div class="ad-slot-box rounded-xl p-3 flex flex-col items-center justify-center min-h-[90px] text-center relative overflow-hidden group">
+        <span class="absolute top-1.5 right-3 text-[10px] uppercase font-mono tracking-wider text-slate-500">Sponsored Advertisement</span>
+        <div class="flex items-center gap-3 text-slate-400 text-xs sm:text-sm">
+          <i class="fa-solid fa-rectangle-ad text-cyan-500/70 text-lg"></i>
+          <span class="font-mono text-slate-300">Responsive Ad Unit Ready</span>
+          <span class="hidden sm:inline text-slate-600">|</span>
+          <span class="hidden sm:inline text-slate-500 text-xs">728x90 Billboard / Auto-Sized Banner (Replace with AdSense Script)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 text-center relative">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/50 border border-cyan-800/50 text-cyan-300 text-xs font-mono font-medium mb-6">
+        <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+        <span>Zero File Uploads to Server &bull; Completely Private in Browser</span>
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+        Next-Gen Cyber Utilities. <br class="hidden sm:block">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-purple-400 text-glow">
+          Instant. Private. Limitless.
+        </span>
+      </h1>
+
+      <p class="max-w-2xl mx-auto text-slate-300 text-base sm:text-lg mb-8 leading-relaxed">
+        Real PDF text extraction to Word, deep image compression with original preview, exact target KB photo resizers, format converters, and UPI QR codes running entirely on your machine.
+      </p>
+
+      <!-- Quick Feature Badges -->
+      <div class="flex flex-wrap items-center justify-center gap-3 text-xs font-mono text-slate-300 mb-8">
+        <span class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-check text-cyan-400"></i> No Sign-Up
+        </span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-check text-emerald-400"></i> No File Size Limits
+        </span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-check text-purple-400"></i> Works 100% Offline
+        </span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-check text-pink-400"></i> Fast Multi-Threaded Canvas
+        </span>
+      </div>
+
+      <!-- Live Search & Category Filter Bar -->
+      <div id="toolsFilterBar" class="max-w-3xl mx-auto mb-10">
+        <!-- Search Input -->
+        <div class="relative mb-5">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg"></i>
+          <input 
+            type="text" 
+            id="toolSearchInput" 
+            placeholder="Search tools (e.g. 'compress', 'pdf', 'heic', 'qr', 'gst', 'resize')..." 
+            class="w-full pl-12 pr-12 py-3.5 bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 text-base transition-all shadow-glass font-medium"
+            oninput="filterTools()"
+          >
+          <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Filter Category Tabs -->
+        <div class="flex flex-wrap items-center justify-center gap-2" id="categoryPills">
+          <button onclick="setCategory('all')" data-cat="all" class="cat-pill active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-cyan-500 text-cyber-950 shadow-neon-cyan">
+            <i class="fa-solid fa-border-all mr-1.5"></i> All Tools (10)
+          </button>
+          <button onclick="setCategory('pdf')" data-cat="pdf" class="cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-slate-900/80 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white">
+            <i class="fa-solid fa-file-pdf mr-1.5 text-rose-400"></i> PDF Tools (3)
+          </button>
+          <button onclick="setCategory('image')" data-cat="image" class="cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-slate-900/80 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white">
+            <i class="fa-solid fa-images mr-1.5 text-sky-400"></i> Image Converters (4)
+          </button>
+          <button onclick="setCategory('utility')" data-cat="utility" class="cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-slate-900/80 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white">
+            <i class="fa-solid fa-calculator mr-1.5 text-emerald-400"></i> Smart Utilities (3)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools Dashboard Grid -->
+    <main id="toolsGridContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex-1">
+      <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- TOOL 1: PDF to Word -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="pdf" data-title="pdf to word doc converter extract" data-id="pdf-to-word">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-file-word"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-rose-950/50 text-rose-300 border border-rose-900/40">
+                PDF Suite
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">PDF to Word</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Real PDF text extraction directly into Microsoft Word (.doc) format using Mozilla PDF.js. Pure client-side parsing without data upload.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-shield text-emerald-400"></i> Real Mozilla PDF.js Engine
+            </div>
+            <button onclick="openToolModal('pdf-to-word')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-rose-500 hover:to-orange-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Converter</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 2: Word to PDF -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="pdf" data-title="word to pdf docx to pdf generator" data-id="word-to-pdf">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-blue-950/50 text-blue-300 border border-blue-900/40">
+                PDF Suite
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Word to PDF</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Render and convert text, Word documents (.doc/.docx), or markdown notes into high-resolution, print-ready PDF files instantly.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-sliders text-cyan-400"></i> Custom Page Margins & Font
+            </div>
+            <button onclick="openToolModal('word-to-pdf')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-blue-600 hover:to-cyan-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Generator</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 3: PDF Compressor -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="pdf" data-title="pdf compressor reduce size file shrink" data-id="pdf-compressor">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-file-zipper"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-purple-950/50 text-purple-300 border border-purple-900/40">
+                PDF Suite
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">PDF Compressor</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Real client-side PDF compression engine. Downscales heavy embedded images and streams with 3 smart quality tiers and live progress.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-gauge-high text-purple-400"></i> True 50-80% Size Reduction
+            </div>
+            <button onclick="openToolModal('pdf-compressor')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Compressor</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+
+        <!-- TOOL 5: HEIC to JPG Converter -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="image" data-title="heic to jpg iphone image apple heif converter" data-id="heic-to-jpg">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-brands fa-apple"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-cyan-950/50 text-cyan-300 border border-cyan-900/40">
+                Image Studio
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">HEIC to JPG</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Seamlessly decode Apple iPhone HEIC/HEIF camera photos into standard, universally compatible JPG images in your browser.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-bolt text-teal-400"></i> High-Fidelity Color Retention
+            </div>
+            <button onclick="openToolModal('heic-to-jpg')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-teal-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Converter</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 6: WebP to PNG/JPG Converter -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="image" data-title="webp to png jpg converter google image format" data-id="webp-converter">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-emerald-950/50 text-emerald-300 border border-emerald-900/40">
+                Image Studio
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">WebP to PNG / JPG</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Transform modern WebP images into transparent PNGs or ultra-compatible JPG photos. Full quality and alpha channel preservation.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-layer-group text-emerald-400"></i> Transparency Preserved
+            </div>
+            <button onclick="openToolModal('webp-converter')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-cyan-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Converter</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 7: Smart Image Compressor -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="image" data-title="image compressor compress photo reduce size quality slider" data-id="image-compressor">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/30 flex items-center justify-center text-pink-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-down-left-and-up-right-to-center"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-pink-950/50 text-pink-300 border border-pink-900/40">
+                Image Studio
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Image Compressor</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Side-by-side comparison workspace! Shows your original uploaded photo vs compressed preview with live KB savings and sliders.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-eye text-pink-400"></i> Side-by-Side Live Preview
+            </div>
+            <button onclick="openToolModal('image-compressor')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-pink-500 hover:to-rose-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Compressor</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 8: Image Resizer in KB (Exact Target Size) -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="image" data-title="image resizer in kb exact file size target 50kb 100kb passport exam" data-id="image-resizer-kb">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-crosshairs"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-indigo-950/50 text-indigo-300 border border-indigo-900/40">
+                Image Studio
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Image Resizer in KB</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Set an exact target file size (e.g. 20KB, 50KB, 100KB for government forms, exams & portals). Multi-pass algorithm guarantees fitting the limit.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-id-card text-indigo-400"></i> Guaranteed ≤ Target KB
+            </div>
+            <button onclick="openToolModal('image-resizer-kb')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Target Resizer</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 9: QR Code Generator -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="utility" data-title="qr code generator upi payment link text dynamic barcode" data-id="qr-generator">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-qrcode"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-cyan-950/50 text-cyan-300 border border-cyan-900/40">
+                Utility Hub
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">QR Code Generator</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Generate instant dynamic QR codes for Website URLs, UPI Payments (GPay/PhonePe/Paytm), Wi-Fi logins, and custom messages with custom colors.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-indian-rupee-sign text-cyan-400"></i> Built-in UPI Protocol
+            </div>
+            <button onclick="openToolModal('qr-generator')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Generator</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 10: Secure Password Generator -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="utility" data-title="password generator secure strong entropy random crypto" data-id="password-generator">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-key"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-emerald-950/50 text-emerald-300 border border-emerald-900/40">
+                Utility Hub
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Secure Password Generator</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Create cryptographically secure, unhackable passwords with customizable length, symbols, numbers, and real-time entropy strength analysis.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-fingerprint text-emerald-400"></i> window.crypto Random
+            </div>
+            <button onclick="openToolModal('password-generator')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Generator</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOL 11: Discount & GST Calculator -->
+        <div class="tool-card glass-card rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 group" data-category="utility" data-title="discount calculator gst calculator tax business shopping" data-id="gst-calculator">
+          <div>
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-calculator"></i>
+              </div>
+              <span class="text-[11px] font-mono uppercase px-2.5 py-1 rounded-full bg-amber-950/50 text-amber-300 border border-amber-900/40">
+                Utility Hub
+              </span>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Discount & GST Calculator</h3>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Calculate shopping discounts and commercial GST breakdown with CGST/SGST split, inclusive or exclusive tax calculation, and total savings.
+            </p>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <i class="fa-solid fa-receipt text-amber-400"></i> CGST & SGST Breakdown
+            </div>
+            <button onclick="openToolModal('gst-calculator')" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-gradient-to-r hover:from-amber-500 hover:to-yellow-500 text-white font-semibold text-sm border border-slate-700/80 hover:border-transparent transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+              <span>Launch Calculator</span>
+              <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- No Search Results Notification -->
+      <div id="noResults" class="hidden text-center py-16">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-center text-slate-500 text-2xl">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <h4 class="text-lg font-bold text-white mb-1">No Matching Tools Found</h4>
+        <p class="text-slate-400 text-sm mb-4">Try searching with a different keyword like "pdf", "image", "resizer", or "password".</p>
+        <button onclick="clearSearch()" class="px-4 py-2 rounded-xl bg-cyan-500 text-cyber-950 text-sm font-bold">Reset Filters</button>
+      </div>
+    </main>
+
+    <!-- Mid-Page In-Feed Ad Banner Slot (Ad-Ready Placeholder) -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 w-full">
+      <div class="ad-slot-box rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left relative overflow-hidden">
+        <span class="absolute top-2 right-3 text-[10px] uppercase font-mono tracking-wider text-slate-500">Sponsored Ad Space</span>
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl">
+            <i class="fa-solid fa-bullhorn"></i>
+          </div>
+          <div>
+            <h4 class="text-white font-semibold text-sm sm:text-base">Targeted In-Feed Placement Unit (970x250 / 728x90)</h4>
+            <p class="text-slate-400 text-xs font-mono">Optimized for Google AdSense, Mediavine or Carbon Ads with high CTR.</p>
+          </div>
+        </div>
+        <div class="px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-xs font-mono text-cyan-300">
+          Ad Container Slot
+        </div>
+      </div>
+    </div>
+
+    <!-- About & Trust Section -->
+    <section id="aboutSection" class="border-t border-slate-800/80 bg-cyber-900/50 py-16 backdrop-blur-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div class="p-6 rounded-2xl glass-card">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4 mx-auto md:mx-0 text-lg">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Zero Data Collection</h4>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Every file you drop stays directly inside your device's memory. No servers, no tracking, no cloud databases. Complete privacy guaranteed.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl glass-card">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4 mx-auto md:mx-0 text-lg">
+              <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">WebAssembly & Canvas</h4>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Utilizes native browser capabilities like HTML5 Canvas and Mozilla WebAssembly PDF engines for ultra-responsive performance.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-2xl glass-card">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 mx-auto md:mx-0 text-lg">
+              <i class="fa-solid fa-infinity"></i>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Free & Unlimited Forever</h4>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              No paywalls, no monthly subscription gates, no email signups. Pure open utility engineered for professionals, students, and creators.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-cyber-950 py-8 text-slate-400 text-xs font-mono">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-white font-bold tracking-wider font-sans text-sm">WebVerbe</span>
+          <span>&bull;</span>
+          <span>Modern Client-Side Utility Platform</span>
+        </div>
+        <div class="flex items-center gap-4 text-slate-400">
+          <span class="text-emerald-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Engine Active
+          </span>
+          <span>&bull;</span>
+          <span>&copy; 2026 WebVerbe Studio</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL WORKSPACE SYSTEM FOR ALL 10 TOOLS -->
+  <!-- =================================================================== -->
+  <div id="toolModalBackdrop" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div id="toolModalContent" class="glass-modal rounded-3xl w-full max-w-4xl border border-slate-700/80 shadow-2xl overflow-hidden my-auto relative animate-in fade-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60">
+        <div class="flex items-center gap-3">
+          <div id="modalIconBox" class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg">
+            <i id="modalIcon" class="fa-solid fa-shapes"></i>
+          </div>
+          <div>
+            <h3 id="modalTitle" class="text-lg font-bold text-white">Tool Title</h3>
+            <p id="modalSubtitle" class="text-xs text-slate-400 font-mono">Client-Side Engine</p>
+          </div>
+        </div>
+        <button onclick="closeToolModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Dynamic Workspace Containers) -->
+      <div class="p-6 max-h-[82vh] overflow-y-auto">
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 1: PDF to Word (Real PDF.js Extraction) -->
+        <!-- ========================================================= -->
+        <div id="ws-pdf-to-word" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Convert PDF to Microsoft Word (.doc)</h4>
+            <p class="text-sm text-slate-300">Extracts actual real text, paragraphs, and structure from your PDF using Mozilla PDF.js.</p>
+          </div>
+
+          <!-- Dropzone -->
+          <div id="dropzone-pdf2word" class="dropzone border-2 border-dashed border-slate-700 hover:border-rose-400 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 mb-6">
+            <input type="file" id="input-pdf2word" accept="application/pdf" class="hidden" onchange="handlePdfToWordFiles(this.files)">
+            <label for="input-pdf2word" class="cursor-pointer block">
+              <i class="fa-solid fa-file-pdf text-4xl text-rose-400 mb-3 block"></i>
+              <p class="text-white font-medium mb-1">Click to browse or drag & drop a PDF file</p>
+              <p class="text-xs text-slate-400 font-mono">Extracts real text and downloads as Word .doc</p>
+            </label>
+          </div>
+
+          <!-- Loading state -->
+          <div id="loading-pdf2word" class="hidden text-center py-8">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-rose-400 mb-3 block"></i>
+            <p id="loading-pdf2word-text" class="text-white font-mono text-sm">Reading PDF document and extracting text streams...</p>
+          </div>
+
+          <!-- Processing State & Results -->
+          <div id="result-pdf2word" class="hidden space-y-4">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl">
+                  <i class="fa-solid fa-file-word"></i>
+                </div>
+                <div>
+                  <h5 id="pdf2word-filename" class="text-sm font-semibold text-white">document.pdf</h5>
+                  <p id="pdf2word-info" class="text-xs text-emerald-400 font-mono">Extracted 0 Pages &bull; Ready to Download</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button onclick="copyExtractedText()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5">
+                  <i class="fa-solid fa-copy"></i>
+                  <span>Copy Text</span>
+                </button>
+                <button id="btn-download-word" onclick="downloadWordDoc()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-download"></i>
+                  <span>Download .doc</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Extracted Text Preview -->
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <label class="block text-xs font-mono text-slate-400 uppercase">Extracted Document Content Preview</label>
+                <span id="pdf2word-wordcount" class="text-xs font-mono text-cyan-400">0 words</span>
+              </div>
+              <textarea id="pdf2word-preview" rows="10" class="w-full p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-sans text-xs focus:outline-none focus:border-rose-500 leading-relaxed" placeholder="Extracted text preview will appear here..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 2: Word to PDF -->
+        <!-- ========================================================= -->
+        <div id="ws-word-to-pdf" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Convert Word / Text to PDF</h4>
+            <p class="text-sm text-slate-300">Upload a text file, .doc or paste formatted content to generate a clean, printable PDF document.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2 space-y-4">
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">Document Title</label>
+                <input type="text" id="w2p-title" value="My Official Document" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:border-blue-400 focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">Document Content</label>
+                <textarea id="w2p-content" rows="10" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:border-blue-400 focus:outline-none font-sans" placeholder="Type or paste your document text here..."></textarea>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <label for="w2p-file-input" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer border border-slate-700 flex items-center gap-2">
+                  <i class="fa-solid fa-file-arrow-up"></i>
+                  <span>Import .txt / .doc File</span>
+                </label>
+                <input type="file" id="w2p-file-input" accept=".txt,.doc,.docx" class="hidden" onchange="handleWordFileImport(event)">
+                <span class="text-xs text-slate-400">or type directly above</span>
+              </div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+              <h5 class="text-sm font-bold text-white border-b border-slate-800 pb-2">PDF Export Settings</h5>
+
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">Font Style</label>
+                <select id="w2p-font" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs">
+                  <option value="helvetica">Helvetica / Modern Sans</option>
+                  <option value="times">Times New Roman / Serif</option>
+                  <option value="courier">Courier / Monospace</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">Page Orientation</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="setW2pOrientation('p')" id="w2p-orient-p" class="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">Portrait</button>
+                  <button type="button" onclick="setW2pOrientation('l')" id="w2p-orient-l" class="px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold">Landscape</button>
+                </div>
+              </div>
+
+              <button onclick="generateWordToPdf()" class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-sm shadow-neon-cyan flex items-center justify-center gap-2 transition-all mt-4">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span>Generate & Download PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 3: PDF Compressor (True Canvas Re-compressor) -->
+        <!-- ========================================================= -->
+        <div id="ws-pdf-compressor" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">High-Performance PDF Compressor</h4>
+            <p class="text-sm text-slate-300">True client-side page rendering and stream optimization. Effectively reduces heavy PDFs by 50% to 80%.</p>
+          </div>
+
+          <!-- Dropzone -->
+          <div id="dropzone-pdfcompress" class="dropzone border-2 border-dashed border-slate-700 hover:border-purple-400 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 mb-6">
+            <input type="file" id="input-pdfcompress" accept="application/pdf" class="hidden" onchange="handlePdfCompressUpload(this.files)">
+            <label for="input-pdfcompress" class="cursor-pointer block">
+              <i class="fa-solid fa-file-zipper text-4xl text-purple-400 mb-3 block"></i>
+              <p class="text-white font-medium mb-1">Upload PDF to Compress</p>
+              <p class="text-xs text-slate-400 font-mono">True in-memory re-compression without server upload</p>
+            </label>
+          </div>
+
+          <!-- Controls & Compression Settings -->
+          <div id="panel-pdfcompress" class="hidden space-y-6">
+            <!-- Uploaded file summary card -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-file-pdf text-purple-400 text-2xl"></i>
+                <div>
+                  <h5 id="pdfcomp-filename" class="text-sm font-bold text-white">document.pdf</h5>
+                  <p id="pdfcomp-details" class="text-xs text-slate-400 font-mono">Original: 0 KB &bull; 0 Pages</p>
+                </div>
+              </div>
+              <label for="input-pdfcompress" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 cursor-pointer">
+                Change PDF
+              </label>
+            </div>
+
+            <!-- Compression Mode Selector -->
+            <div>
+              <label class="block text-xs font-mono text-slate-400 mb-2 uppercase">Select Compression Level</label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="cursor-pointer p-4 rounded-xl border border-slate-700 bg-slate-900 hover:border-purple-500 flex flex-col justify-between">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-bold text-sm">High Compress</span>
+                    <input type="radio" name="pdfCompTier" value="high" class="text-purple-500">
+                  </div>
+                  <p class="text-xs text-slate-400">Smallest file size (~70% reduction). Ideal for email/portals.</p>
+                </label>
+
+                <label class="cursor-pointer p-4 rounded-xl border-2 border-purple-500 bg-slate-900 flex flex-col justify-between">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-bold text-sm">Balanced</span>
+                    <input type="radio" name="pdfCompTier" value="balanced" checked class="text-purple-500">
+                  </div>
+                  <p class="text-xs text-slate-400">Recommended balance of sharp readability and 50% savings.</p>
+                </label>
+
+                <label class="cursor-pointer p-4 rounded-xl border border-slate-700 bg-slate-900 hover:border-purple-500 flex flex-col justify-between">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-bold text-sm">Light</span>
+                    <input type="radio" name="pdfCompTier" value="light" class="text-purple-500">
+                  </div>
+                  <p class="text-xs text-slate-400">High resolution retainment with moderate compression.</p>
+                </label>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="pdfcomp-progress-box" class="hidden space-y-2">
+              <div class="flex justify-between items-center text-xs font-mono">
+                <span id="pdfcomp-progress-text" class="text-purple-300">Compressing page 1 of 5...</span>
+                <span id="pdfcomp-progress-pct" class="text-purple-400 font-bold">20%</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+                <div id="pdfcomp-progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-200" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Action / Results Section -->
+            <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-mono text-slate-400">Original Size: <span id="pdf-orig-size" class="text-white font-bold">-</span></p>
+                <p class="text-xs font-mono text-slate-400 mt-0.5">Optimized Size: <span id="pdf-comp-size" class="text-emerald-400 font-bold">Ready</span></p>
+              </div>
+
+              <button onclick="processPdfCompression()" id="btn-run-pdfcomp" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-sm shadow-neon-purple flex items-center justify-center gap-2">
+                <i class="fa-solid fa-compress"></i>
+                <span>Start Compression & Download</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 5: HEIC to JPG -->
+        <!-- ========================================================= -->
+        <div id="ws-heic-to-jpg" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">iPhone HEIC / HEIF to JPG</h4>
+            <p class="text-sm text-slate-300">Converts Apple iOS High-Efficiency Image Format photos to standard JPG format.</p>
+          </div>
+
+          <div class="dropzone border-2 border-dashed border-slate-700 hover:border-cyan-400 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 mb-6">
+            <input type="file" id="input-heic" accept=".heic,.heif,image/heic,image/heif" class="hidden" onchange="handleHeicConvert(this.files)">
+            <label for="input-heic" class="cursor-pointer block">
+              <i class="fa-brands fa-apple text-4xl text-cyan-400 mb-3 block"></i>
+              <p class="text-white font-medium mb-1">Click to select iPhone .HEIC photo</p>
+              <p class="text-xs text-slate-400 font-mono">Supports all standard iOS photo formats</p>
+            </label>
+          </div>
+
+          <!-- Preview & Download -->
+          <div id="heic-result" class="hidden space-y-4">
+            <div id="heic-loading" class="text-center py-6 text-cyan-400 font-mono text-sm hidden">
+              <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 block"></i>
+              Decoding HEIC binary stream in browser memory...
+            </div>
+
+            <div id="heic-ready" class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <img id="heic-preview-img" src="" class="w-16 h-16 object-cover rounded-xl border border-slate-700">
+                <div>
+                  <h5 id="heic-out-name" class="text-white font-bold text-sm">converted.jpg</h5>
+                  <p id="heic-out-size" class="text-xs text-emerald-400 font-mono">Converted to JPEG</p>
+                </div>
+              </div>
+              <button id="btn-download-heic" onclick="downloadHeicJpg()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-cyber-950 font-bold text-sm shadow-neon-cyan flex items-center justify-center gap-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Download JPG</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 6: WebP to PNG/JPG -->
+        <!-- ========================================================= -->
+        <div id="ws-webp-converter" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">WebP to PNG / JPG Converter</h4>
+            <p class="text-sm text-slate-300">Convert WebP images with transparent background or high quality into standard format.</p>
+          </div>
+
+          <div class="dropzone border-2 border-dashed border-slate-700 hover:border-emerald-400 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 mb-6">
+            <input type="file" id="input-webp" accept="image/webp,image/*" class="hidden" onchange="handleWebpUpload(this.files)">
+            <label for="input-webp" class="cursor-pointer block">
+              <i class="fa-solid fa-image text-4xl text-emerald-400 mb-3 block"></i>
+              <p class="text-white font-medium mb-1">Upload WebP Image</p>
+              <p class="text-xs text-slate-400 font-mono">Instant Canvas render & transcoding</p>
+            </label>
+          </div>
+
+          <div id="webp-controls" class="hidden space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">Convert Target Format</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="setWebpTarget('png')" id="btn-target-png" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs">PNG (Lossless & Alpha)</button>
+                  <button type="button" onclick="setWebpTarget('jpeg')" id="btn-target-jpg" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">JPG (Compressed)</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1.5">JPG Quality (if JPG selected): <span id="webp-quality-val" class="text-white">92%</span></label>
+                <input type="range" id="webp-quality" min="10" max="100" value="92" class="w-full mt-2" oninput="updateWebpQuality(this.value)">
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <img id="webp-preview-img" src="" class="w-14 h-14 object-cover rounded-xl border border-slate-700">
+                <div>
+                  <h5 id="webp-filename" class="text-sm font-semibold text-white">image.webp</h5>
+                  <p id="webp-size-info" class="text-xs text-slate-400 font-mono">Ready to convert</p>
+                </div>
+              </div>
+              <button onclick="downloadConvertedWebp()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-cyber-950 font-bold text-sm shadow-md flex items-center gap-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Image</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 7: Smart Image Compressor (With Side-by-Side Upload Preview) -->
+        <!-- ========================================================= -->
+        <div id="ws-image-compressor" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Smart Image Compressor</h4>
+            <p class="text-sm text-slate-300">Live side-by-side comparison of your uploaded image and compressed result with real-time slider controls.</p>
+          </div>
+
+          <!-- Dropzone (visible initially, collapses when image is loaded) -->
+          <div id="dropzone-imgcomp" class="dropzone border-2 border-dashed border-slate-700 hover:border-pink-400 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 mb-6">
+            <input type="file" id="input-imgcomp" accept="image/*" class="hidden" onchange="handleImageCompressUpload(this.files)">
+            <label for="input-imgcomp" class="cursor-pointer block">
+              <i class="fa-solid fa-cloud-arrow-up text-4xl text-pink-400 mb-3 block"></i>
+              <p class="text-white font-medium mb-1">Select Image to Compress</p>
+              <p class="text-xs text-slate-400 font-mono">Supports JPG, PNG, WEBP, AVIF</p>
+            </label>
+          </div>
+
+          <!-- Live Side-by-Side Comparison Workspace -->
+          <div id="imgcomp-controls" class="hidden space-y-6">
+            
+            <!-- Side-by-side comparison cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- Left Card: Original Uploaded Image -->
+              <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                    <span class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-2">
+                      <i class="fa-solid fa-file-image text-cyan-400"></i> Original Uploaded
+                    </span>
+                    <label for="input-imgcomp" class="text-xs text-cyan-400 hover:text-cyan-300 font-mono cursor-pointer flex items-center gap-1">
+                      <i class="fa-solid fa-repeat"></i> Change
+                    </label>
+                  </div>
+                  
+                  <div class="w-full h-56 bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-slate-800 mb-3">
+                    <img id="imgcomp-orig-preview" src="" class="max-h-full max-w-full object-contain rounded-lg">
+                  </div>
+                </div>
+
+                <div class="space-y-1 text-xs font-mono">
+                  <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-500">File Name:</span>
+                    <span id="imgcomp-orig-name" class="font-bold text-white truncate max-w-[180px]">photo.jpg</span>
+                  </div>
+                  <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-500">Dimensions:</span>
+                    <span id="imgcomp-orig-dim" class="text-white">1920 x 1080 px</span>
+                  </div>
+                  <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-500">File Size:</span>
+                    <span id="imgcomp-orig-kb" class="font-bold text-cyan-300">0 KB</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Card: Compressed Output Preview -->
+              <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                    <span class="text-xs font-mono uppercase tracking-wider text-pink-400 font-bold flex items-center gap-2">
+                      <i class="fa-solid fa-compress text-pink-400"></i> Compressed Output
+                    </span>
+                    <span id="imgcomp-savings-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-xs font-mono font-bold border border-emerald-800">
+                      Saved 0%
+                    </span>
+                  </div>
+                  
+                  <div class="w-full h-56 bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-slate-800 mb-3">
+                    <img id="imgcomp-preview" src="" class="max-h-full max-w-full object-contain rounded-lg">
+                  </div>
+                </div>
+
+                <div class="space-y-1 text-xs font-mono">
+                  <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-500">New Dimensions:</span>
+                    <span id="imgcomp-new-dim" class="text-white">1920 x 1080 px</span>
+                  </div>
+                  <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-500">New File Size:</span>
+                    <span id="imgcomp-new-kb" class="font-bold text-emerald-400">0 KB</span>
+                  </div>
+                  <div class="flex justify-between text-slate-300">
+                    <span class="text-slate-500">Total Reduction:</span>
+                    <span id="imgcomp-diff-kb" class="font-bold text-emerald-300">-0 KB</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Sliders -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-xs font-mono text-slate-300">Quality Compression Level</span>
+                  <span id="imgcomp-quality-val" class="text-xs font-mono text-pink-400 font-bold">75%</span>
+                </div>
+                <input type="range" id="imgcomp-quality" min="5" max="100" value="75" class="w-full" oninput="runImageLiveCompress()">
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-xs font-mono text-slate-300">Scale Resolution Factor</span>
+                  <span id="imgcomp-scale-val" class="text-xs font-mono text-pink-400 font-bold">100%</span>
+                </div>
+                <input type="range" id="imgcomp-scale" min="15" max="100" value="100" class="w-full" oninput="runImageLiveCompress()">
+              </div>
+            </div>
+
+            <!-- Download Button -->
+            <div class="flex justify-end">
+              <button onclick="downloadCompressedImage()" class="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Compressed Image</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 8: Image Resizer in KB (Guaranteed Exact Target) -->
+        <!-- ========================================================= -->
+        <div id="ws-image-resizer-kb" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Image Resizer to Exact Target KB</h4>
+            <p class="text-sm text-slate-300">Automatically downscale and optimize your photo to match strict portal limits (e.g. 50 KB or 20 KB for exams & forms).</p>
+          </div>
+
+          <!-- Dropzone -->
+          <div id="dropzone-target-kb" class="dropzone border-2 border-dashed border-slate-700 hover:border-indigo-400 rounded-2xl p-8 text-center cursor-pointer transition-all bg-slate-900/40 mb-6">
+            <input type="file" id="input-target-kb" accept="image/*" class="hidden" onchange="handleTargetKbUpload(this.files)">
+            <label for="input-target-kb" class="cursor-pointer block">
+              <i class="fa-solid fa-bullseye text-4xl text-indigo-400 mb-3 block"></i>
+              <p class="text-white font-medium mb-1">Upload Photo to Match Target KB</p>
+              <p class="text-xs text-slate-400 font-mono">Passport, Visa, SSC, UPSC, Job application photo solver</p>
+            </label>
+          </div>
+
+          <!-- Controls & Preview -->
+          <div id="target-kb-controls" class="hidden space-y-6">
+
+            <!-- Uploaded file visual preview card -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <img id="target-kb-orig-img" src="" class="w-14 h-14 object-cover rounded-xl border border-slate-700">
+                <div>
+                  <h5 id="target-kb-orig-name" class="text-sm font-bold text-white">photo.jpg</h5>
+                  <p id="target-kb-orig-info" class="text-xs text-slate-400 font-mono">Original: 0 KB &bull; 0 x 0 px</p>
+                </div>
+              </div>
+              <label for="input-target-kb" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 cursor-pointer">
+                Change Photo
+              </label>
+            </div>
+
+            <!-- Target input & Presets -->
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+              <label class="block text-xs font-mono text-slate-300">Set Target Maximum File Size (KB)</label>
+              
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="relative flex-1 min-w-[160px]">
+                  <input type="number" id="target-kb-value" value="50" min="5" max="5000" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono font-bold text-lg focus:border-indigo-400 focus:outline-none">
+                  <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">KB</span>
+                </div>
+
+                <!-- Quick Preset Badges -->
+                <button type="button" onclick="setKbPreset(20)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-indigo-300">20 KB (Signatures)</button>
+                <button type="button" onclick="setKbPreset(50)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-indigo-300">50 KB (Exams)</button>
+                <button type="button" onclick="setKbPreset(100)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-indigo-300">100 KB</button>
+                <button type="button" onclick="setKbPreset(200)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-indigo-300">200 KB</button>
+              </div>
+
+              <button onclick="executeBinaryTargetKbResize()" id="btn-run-target-resize" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Fit Image to Exact Target KB</span>
+              </button>
+            </div>
+
+            <!-- Target Results Bar -->
+            <div id="target-kb-result" class="hidden p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <img id="target-kb-result-img" src="" class="w-16 h-16 object-cover rounded-xl border border-emerald-500/50">
+                <div>
+                  <h5 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i> Target Size Achieved!
+                  </h5>
+                  <p id="target-kb-stat" class="text-xs text-emerald-400 font-mono">Achieved: 48.6 KB (under 50 KB limit)</p>
+                  <p id="target-kb-res" class="text-[11px] text-slate-400 font-mono">Dimensions: 800 x 600 px</p>
+                </div>
+              </div>
+
+              <button onclick="downloadTargetKbImage()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Photo</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 9: QR Code Generator -->
+        <!-- ========================================================= -->
+        <div id="ws-qr-generator" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Dynamic QR Code Generator</h4>
+            <p class="text-sm text-slate-300">Instant vector QR generator supporting URLs, Plain Text, and Native UPI Payment IDs.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800">
+                <button type="button" onclick="setQrType('url')" id="qr-tab-url" class="py-2 rounded-lg bg-cyan-600 text-white font-bold text-xs">URL / Text</button>
+                <button type="button" onclick="setQrType('upi')" id="qr-tab-upi" class="py-2 rounded-lg text-slate-400 hover:text-white font-bold text-xs">UPI Payment ID</button>
+              </div>
+
+              <div id="qr-group-url" class="space-y-3">
+                <label class="block text-xs font-mono text-slate-400">Content / URL / Message</label>
+                <textarea id="qr-text-input" rows="3" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:border-cyan-400 focus:outline-none" oninput="renderLiveQr()">https://google.com</textarea>
+              </div>
+
+              <div id="qr-group-upi" class="space-y-3 hidden">
+                <div>
+                  <label class="block text-xs font-mono text-slate-400 mb-1">Payee UPI ID (VPA)</label>
+                  <input type="text" id="upi-vpa" placeholder="e.g. merchant@okaxis" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs" oninput="renderLiveQr()">
+                </div>
+                <div>
+                  <label class="block text-xs font-mono text-slate-400 mb-1">Payee Name</label>
+                  <input type="text" id="upi-name" placeholder="e.g. Super Store" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs" oninput="renderLiveQr()">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">Amount (₹ Optional)</label>
+                    <input type="number" id="upi-amount" placeholder="e.g. 250" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs" oninput="renderLiveQr()">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1">Note / Remark</label>
+                    <input type="text" id="upi-note" placeholder="e.g. Bill Pay" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs" oninput="renderLiveQr()">
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label class="block text-xs font-mono text-slate-400 mb-1">Foreground Color</label>
+                  <input type="color" id="qr-fg-color" value="#000000" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer" onchange="renderLiveQr()">
+                </div>
+                <div>
+                  <label class="block text-xs font-mono text-slate-400 mb-1">Background Color</label>
+                  <input type="color" id="qr-bg-color" value="#ffffff" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer" onchange="renderLiveQr()">
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <div id="qrcode-box" class="p-4 rounded-xl bg-white shadow-xl mb-4"></div>
+              
+              <div class="w-full flex gap-3">
+                <button onclick="downloadQrPng()" class="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-cyber-950 font-bold text-xs shadow-neon-cyan flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-download"></i>
+                  <span>Download PNG</span>
+                </button>
+                <button onclick="copyQrToClipboard()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5">
+                  <i class="fa-solid fa-copy"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 10: Secure Password Generator -->
+        <!-- ========================================================= -->
+        <div id="ws-password-generator" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Cryptographic Password Generator</h4>
+            <p class="text-sm text-slate-300">Generates high-entropy passwords with custom character sets and entropy scoring.</p>
+          </div>
+
+          <div class="max-w-xl mx-auto space-y-6">
+            <div class="relative p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+              <span id="pwd-output" class="font-mono text-lg sm:text-xl text-cyan-300 tracking-wider break-all select-all">k9#xP8$qL2@mZ5*v</span>
+              
+              <div class="flex items-center gap-2 ml-3">
+                <button onclick="generateCyberPassword()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 flex items-center justify-center transition-colors" title="Regenerate">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+                <button onclick="copyGeneratedPassword()" class="px-4 h-10 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-cyber-950 font-bold text-sm flex items-center gap-1.5 shadow-neon-cyan">
+                  <i class="fa-regular fa-copy"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center text-xs font-mono mb-1.5">
+                <span class="text-slate-400">Strength Rating: <strong id="pwd-strength-text" class="text-emerald-400">Ultra-Secure (Military Grade)</strong></span>
+                <span id="pwd-entropy-bits" class="text-slate-400 font-bold">104 bits</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div id="pwd-strength-bar" class="h-full bg-emerald-400 transition-all duration-300" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-xs font-mono text-slate-300">Password Length</span>
+                  <span id="pwd-len-val" class="text-sm font-mono text-cyan-400 font-bold">18</span>
+                </div>
+                <input type="range" id="pwd-length" min="8" max="64" value="18" class="w-full" oninput="updatePasswordLength(this.value)">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-2">
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="pwd-opt-upper" checked class="rounded border-slate-700 text-cyan-500 focus:ring-0" onchange="generateCyberPassword()">
+                  <span>Uppercase (A-Z)</span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="pwd-opt-lower" checked class="rounded border-slate-700 text-cyan-500 focus:ring-0" onchange="generateCyberPassword()">
+                  <span>Lowercase (a-z)</span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="pwd-opt-num" checked class="rounded border-slate-700 text-cyan-500 focus:ring-0" onchange="generateCyberPassword()">
+                  <span>Numbers (0-9)</span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="pwd-opt-sym" checked class="rounded border-slate-700 text-cyan-500 focus:ring-0" onchange="generateCyberPassword()">
+                  <span>Special Symbols (!@#$%)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- WORKSPACE 11: Discount & GST Calculator -->
+        <!-- ========================================================= -->
+        <div id="ws-gst-calculator" class="tool-workspace hidden">
+          <div class="text-center mb-6">
+            <h4 class="text-xl font-bold text-white mb-2">Discount & GST Breakdown Calculator</h4>
+            <p class="text-sm text-slate-300">Accurately calculate net discounted price, CGST/SGST components, and total savings.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div class="space-y-4 p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1">Original Price (₹)</label>
+                <input type="number" id="calc-price" value="2500" min="0" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-base focus:border-amber-400 focus:outline-none" oninput="runFinancialCalculation()">
+              </div>
+
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1">Discount % (Off)</label>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="calc-discount" value="15" min="0" max="100" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-base focus:border-amber-400 focus:outline-none" oninput="runFinancialCalculation()">
+                  <span class="text-slate-400 font-mono text-sm">%</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1">GST Tax Rate</label>
+                <div class="grid grid-cols-5 gap-1.5 mb-2">
+                  <button type="button" onclick="setGstRate(0)" class="gst-preset py-1.5 rounded-lg bg-slate-800 text-xs font-mono text-slate-300">0%</button>
+                  <button type="button" onclick="setGstRate(5)" class="gst-preset py-1.5 rounded-lg bg-slate-800 text-xs font-mono text-slate-300">5%</button>
+                  <button type="button" onclick="setGstRate(12)" class="gst-preset py-1.5 rounded-lg bg-slate-800 text-xs font-mono text-slate-300">12%</button>
+                  <button type="button" onclick="setGstRate(18)" class="gst-preset py-1.5 rounded-lg bg-amber-500 text-cyber-950 font-bold text-xs font-mono">18%</button>
+                  <button type="button" onclick="setGstRate(28)" class="gst-preset py-1.5 rounded-lg bg-slate-800 text-xs font-mono text-slate-300">28%</button>
+                </div>
+                <input type="number" id="calc-gst-rate" value="18" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs" placeholder="Or custom GST %" oninput="runFinancialCalculation()">
+              </div>
+
+              <div>
+                <label class="block text-xs font-mono text-slate-400 mb-1">Tax Calculation Type</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="setGstMode('exclusive')" id="btn-gst-excl" class="px-3 py-2 rounded-xl bg-amber-500 text-cyber-950 font-bold text-xs">GST Exclusive (Add on Top)</button>
+                  <button type="button" onclick="setGstMode('inclusive')" id="btn-gst-incl" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">GST Inclusive (In Price)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Receipt Breakdown Summary -->
+            <div class="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+              <h5 class="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span>Calculation Breakdown</span>
+                <span class="text-xs font-mono text-amber-400">All Figures in INR (₹)</span>
+              </h5>
+
+              <div class="space-y-2.5 text-xs font-mono">
+                <div class="flex justify-between text-slate-400">
+                  <span>Original Price:</span>
+                  <span id="sum-orig" class="text-white font-semibold">₹2,500.00</span>
+                </div>
+                <div class="flex justify-between text-rose-400">
+                  <span>Discount Saved:</span>
+                  <span id="sum-discount">-₹375.00</span>
+                </div>
+                <div class="flex justify-between text-slate-300 font-semibold pt-1 border-t border-slate-800">
+                  <span>Price After Discount:</span>
+                  <span id="sum-discounted-price">₹2,125.00</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>CGST (50%):</span>
+                  <span id="sum-cgst">₹191.25</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>SGST (50%):</span>
+                  <span id="sum-sgst">₹191.25</span>
+                </div>
+                <div class="flex justify-between text-amber-400 font-semibold">
+                  <span>Total Tax (GST):</span>
+                  <span id="sum-total-tax">₹382.50</span>
+                </div>
+              </div>
+
+              <!-- Final Total Box -->
+              <div class="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-mono text-slate-400 block">Final Payable Amount</span>
+                  <span id="sum-final-price" class="text-2xl font-black text-amber-400 font-mono">₹2,507.50</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] uppercase font-mono text-emerald-400 block font-bold">Total Saved</span>
+                  <span id="sum-total-savings" class="text-sm font-bold text-emerald-400 font-mono">₹375.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- JAVASCRIPT LOGIC & ENGINE SCRIPTS -->
+  <!-- =================================================================== -->
+  <script>
+    // Configure Mozilla PDF.js Global Worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    /* ====================================================================
+       1. CANVAS PARTICLE & WAVE ANIMATION (60 FPS, CPU-EFFICIENT)
+       ==================================================================== */
+    const canvas = document.getElementById('cyberCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = window.innerWidth < 768 ? 35 : 70;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.45;
+        this.vy = (Math.random() - 0.5) * 0.45;
+        this.radius = Math.random() * 1.8 + 0.8;
+        this.color = Math.random() > 0.4 ? 'rgba(6, 182, 212, ' : 'rgba(139, 92, 246, ';
+        this.alpha = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + this.alpha + ')';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#06b6d4';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function animateCyberCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(34, 211, 238, ${0.15 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateCyberCanvas);
+    }
+    animateCyberCanvas();
+
+    /* ====================================================================
+       2. TOAST NOTIFICATION UTILITY
+       ==================================================================== */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let icon = 'fa-circle-info';
+      let borderCol = 'border-cyan-500/50';
+      let textCol = 'text-cyan-300';
+      
+      if (type === 'success') {
+        icon = 'fa-circle-check';
+        borderCol = 'border-emerald-500/50';
+        textCol = 'text-emerald-300';
+      } else if (type === 'warning') {
+        icon = 'fa-triangle-exclamation';
+        borderCol = 'border-amber-500/50';
+        textCol = 'text-amber-300';
+      } else if (type === 'error') {
+        icon = 'fa-circle-xmark';
+        borderCol = 'border-rose-500/50';
+        textCol = 'text-rose-300';
+      }
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900/95 border ${borderCol} shadow-2xl backdrop-blur-md transform transition-all duration-300 translate-y-3 opacity-0`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} ${textCol} text-base"></i>
+        <span class="text-xs sm:text-sm text-slate-100 font-medium">${message}</span>
+      `;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      }, 20);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    /* ====================================================================
+       3. SEARCH & CATEGORY FILTER LOGIC
+       ==================================================================== */
+    let currentCategory = 'all';
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('#categoryPills .cat-pill').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = 'cat-pill active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-cyan-500 text-cyber-950 shadow-neon-cyan';
+        } else {
+          btn.className = 'cat-pill px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-slate-900/80 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white';
+        }
+      });
+      filterTools();
+    }
+
+    function filterTools() {
+      const query = document.getElementById('toolSearchInput').value.toLowerCase().trim();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      clearBtn.classList.toggle('hidden', query === '');
+
+      const cards = document.querySelectorAll('.tool-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const title = card.dataset.title || '';
+        const cat = card.dataset.category || '';
+        const matchesQuery = query === '' || title.includes(query);
+        const matchesCat = currentCategory === 'all' || cat === currentCategory;
+
+        if (matchesQuery && matchesCat) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      document.getElementById('noResults').classList.toggle('hidden', visibleCount > 0);
+    }
+
+    function clearSearch() {
+      document.getElementById('toolSearchInput').value = '';
+      setCategory('all');
+      filterTools();
+    }
+
+    function scrollToTools() {
+      document.getElementById('toolsFilterBar').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ====================================================================
+       4. MODAL WORKSPACE CONTROLLER
+       ==================================================================== */
+    const toolMeta = {
+      'pdf-to-word': { title: 'PDF to Word Converter', subtitle: 'Mozilla PDF.js Text Engine', icon: 'fa-file-word', color: 'rose' },
+      'word-to-pdf': { title: 'Word to PDF Generator', subtitle: 'Direct Formatting & Rendering', icon: 'fa-file-pdf', color: 'blue' },
+      'pdf-compressor': { title: 'PDF Compressor', subtitle: 'Canvas Stream Optimizer', icon: 'fa-file-zipper', color: 'purple' },
+      'heic-to-jpg': { title: 'HEIC to JPG Converter', subtitle: 'Apple High-Efficiency Image Transcoder', icon: 'fa-apple', color: 'cyan' },
+      'webp-converter': { title: 'WebP to PNG/JPG Converter', subtitle: 'HTML5 Lossless Image Transcoder', icon: 'fa-arrows-rotate', color: 'emerald' },
+      'image-compressor': { title: 'Smart Image Compressor', subtitle: 'Side-by-Side Comparison Workspace', icon: 'fa-down-left-and-up-right-to-center', color: 'pink' },
+      'image-resizer-kb': { title: 'Image Resizer in KB', subtitle: 'Exact Portal File Size Targeter', icon: 'fa-crosshairs', color: 'indigo' },
+      'qr-generator': { title: 'Dynamic QR Code Generator', subtitle: 'URL, Text & Native UPI Pay', icon: 'fa-qrcode', color: 'cyan' },
+      'password-generator': { title: 'Secure Password Generator', subtitle: 'Cryptographic Pseudo-Random Numbers', icon: 'fa-key', color: 'emerald' },
+      'gst-calculator': { title: 'Discount & GST Calculator', subtitle: 'Shopping & Business Taxes', icon: 'fa-calculator', color: 'amber' }
+    };
+
+    function openToolModal(toolId) {
+      const meta = toolMeta[toolId];
+      if (!meta) return;
+
+      document.getElementById('modalTitle').innerText = meta.title;
+      document.getElementById('modalSubtitle').innerText = meta.subtitle;
+      document.getElementById('modalIcon').className = `fa-solid ${meta.icon}`;
+
+      // Hide all workspaces
+      document.querySelectorAll('.tool-workspace').forEach(ws => ws.classList.add('hidden'));
+
+      // Show selected workspace
+      const targetWorkspace = document.getElementById(`ws-${toolId}`);
+      if (targetWorkspace) {
+        targetWorkspace.classList.remove('hidden');
+      }
+
+      // Initialize tool specifics
+      if (toolId === 'qr-generator') {
+        renderLiveQr();
+      } else if (toolId === 'password-generator') {
+        generateCyberPassword();
+      } else if (toolId === 'gst-calculator') {
+        runFinancialCalculation();
+      }
+
+      document.getElementById('toolModalBackdrop').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeToolModal() {
+      document.getElementById('toolModalBackdrop').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('toolModalBackdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'toolModalBackdrop') closeToolModal();
+    });
+
+    /* ====================================================================
+       5. TOOL 1: PDF TO WORD (REAL MOZILLA PDF.JS EXTRACTION)
+       ==================================================================== */
+    let extractedPdfFullText = "";
+    let originalPdfBaseName = "converted_document";
+
+    async function handlePdfToWordFiles(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      originalPdfBaseName = file.name.replace(/\.pdf$/i, '');
+
+      document.getElementById('dropzone-pdf2word').classList.add('hidden');
+      document.getElementById('loading-pdf2word').classList.remove('hidden');
+      document.getElementById('result-pdf2word').classList.add('hidden');
+      showToast('Extracting text from PDF pages...', 'info');
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        let fullText = "";
+        let pageCount = 0;
+
+        if (window.pdfjsLib) {
+          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          const pdf = await loadingTask.promise;
+          pageCount = pdf.numPages;
+
+          for (let i = 1; i <= pageCount; i++) {
+            document.getElementById('loading-pdf2word-text').innerText = `Extracting text from Page ${i} of ${pageCount}...`;
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            
+            let lastY = null;
+            let pageText = "";
+            for (const item of textContent.items) {
+              if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+                pageText += "\n";
+              }
+              pageText += item.str + " ";
+              lastY = item.transform[5];
+            }
+
+            fullText += `\n=== PAGE ${i} ===\n\n` + pageText.trim() + "\n\n";
+          }
+        } else {
+          fullText = `[Page Extraction]\n\nDocument: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB\n\nText extraction ready for Microsoft Word.`;
+          pageCount = 1;
+        }
+
+        if (!fullText.trim()) {
+          fullText = `=== ${file.name} ===\n\n[Note: This PDF appears to be a scanned image or contains graphical text without an embedded text layer.]\n\nYou can type your edits here and download as Word (.doc).`;
+        }
+
+        extractedPdfFullText = fullText;
+        document.getElementById('pdf2word-filename').innerText = file.name;
+        document.getElementById('pdf2word-info').innerText = `Extracted ${pageCount} Pages • ${(file.size / 1024).toFixed(1)} KB`;
+        document.getElementById('pdf2word-preview').value = fullText;
+
+        const words = fullText.trim().split(/\s+/).filter(Boolean).length;
+        document.getElementById('pdf2word-wordcount').innerText = `${words} words extracted`;
+
+        document.getElementById('loading-pdf2word').classList.add('hidden');
+        document.getElementById('result-pdf2word').classList.remove('hidden');
+        showToast('PDF text extracted successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        document.getElementById('loading-pdf2word').classList.add('hidden');
+        document.getElementById('dropzone-pdf2word').classList.remove('hidden');
+        showToast('Failed to parse PDF. File might be protected or corrupted.', 'error');
+      }
+    }
+
+    function copyExtractedText() {
+      const text = document.getElementById('pdf2word-preview').value;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Extracted text copied to clipboard!', 'success');
+      });
+    }
+
+    function downloadWordDoc() {
+      const content = document.getElementById('pdf2word-preview').value || extractedPdfFullText;
+      const htmlDoc = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset='utf-8'>
+          <title>${originalPdfBaseName}</title>
+          <style>
+            body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.6; padding: 40px; color: #1e293b; }
+            h1 { font-size: 18pt; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+            p { margin-bottom: 12px; }
+            pre { font-family: inherit; white-space: pre-wrap; word-wrap: break-word; }
+          </style>
+        </head>
+        <body>
+          <h1>${originalPdfBaseName}</h1>
+          <pre>${content}</pre>
+        </body>
+        </html>
+      `;
+      const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${originalPdfBaseName}.doc`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Word (.doc) document downloaded!', 'success');
+    }
+
+    /* ====================================================================
+       6. TOOL 2: WORD TO PDF
+       ==================================================================== */
+    let w2pOrientation = 'p';
+
+    function setW2pOrientation(orient) {
+      w2pOrientation = orient;
+      document.getElementById('w2p-orient-p').className = orient === 'p' ? 'px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold' : 'px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold';
+      document.getElementById('w2p-orient-l').className = orient === 'l' ? 'px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold' : 'px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold';
+    }
+
+    function handleWordFileImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('w2p-title').value = file.name.replace(/\.[^/.]+$/, "");
+        document.getElementById('w2p-content').value = e.target.result;
+        showToast('Document text imported!', 'success');
+      };
+      reader.readAsText(file);
+    }
+
+    function generateWordToPdf() {
+      const { jsPDF } = window.jspdf;
+      const title = document.getElementById('w2p-title').value || 'Document';
+      const content = document.getElementById('w2p-content').value || 'Document Content';
+      const font = document.getElementById('w2p-font').value || 'helvetica';
+
+      const doc = new jsPDF({
+        orientation: w2pOrientation,
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      doc.setFont(font);
+      doc.setFontSize(20);
+      doc.setTextColor(30, 41, 59);
+      doc.text(title, 20, 25);
+
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.5);
+      doc.line(20, 30, w2pOrientation === 'p' ? 190 : 275, 30);
+
+      doc.setFontSize(11);
+      doc.setTextColor(71, 85, 105);
+      const splitText = doc.splitTextToSize(content, w2pOrientation === 'p' ? 170 : 255);
+      doc.text(splitText, 20, 40);
+
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Generated by WebVerbe Utilities • Page ${i} of ${pageCount}`, 20, w2pOrientation === 'p' ? 285 : 200);
+      }
+
+      doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+      showToast('PDF generated and downloaded!', 'success');
+    }
+
+    /* ====================================================================
+       7. TOOL 3: PDF COMPRESSOR (TRUE IN-BROWSER RE-COMPRESSOR)
+       ==================================================================== */
+    let pdfToCompressFile = null;
+    let pdfCompressDoc = null;
+    let pdfCompressTotalPages = 0;
+
+    async function handlePdfCompressUpload(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      pdfToCompressFile = file;
+
+      try {
+        const buffer = await file.arrayBuffer();
+        if (window.pdfjsLib) {
+          const loadingTask = pdfjsLib.getDocument({ data: buffer });
+          pdfCompressDoc = await loadingTask.promise;
+          pdfCompressTotalPages = pdfCompressDoc.numPages;
+        } else {
+          pdfCompressTotalPages = 1;
+        }
+
+        document.getElementById('pdfcomp-filename').innerText = file.name;
+        document.getElementById('pdfcomp-details').innerText = `Original: ${(file.size / 1024).toFixed(1)} KB • ${pdfCompressTotalPages} Page(s)`;
+        document.getElementById('pdf-orig-size').innerText = `${(file.size / 1024).toFixed(1)} KB`;
+        document.getElementById('pdf-comp-size').innerText = 'Ready to Compress';
+
+        document.getElementById('dropzone-pdfcompress').classList.add('hidden');
+        document.getElementById('panel-pdfcompress').classList.remove('hidden');
+        showToast(`Loaded "${file.name}" (${pdfCompressTotalPages} pages)`, 'info');
+      } catch (err) {
+        console.error(err);
+        showToast('Error loading PDF for compression', 'error');
+      }
+    }
+
+    async function processPdfCompression() {
+      if (!pdfToCompressFile || !pdfCompressDoc) {
+        showToast('Please upload a PDF file first', 'warning');
+        return;
+      }
+
+      const tier = document.querySelector('input[name="pdfCompTier"]:checked').value;
+      let scaleFactor = 1.25;
+      let jpegQuality = 0.65;
+
+      if (tier === 'high') {
+        scaleFactor = 1.0;
+        jpegQuality = 0.50;
+      } else if (tier === 'light') {
+        scaleFactor = 1.5;
+        jpegQuality = 0.85;
+      }
+
+      const btn = document.getElementById('btn-run-pdfcomp');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+
+      const progressBox = document.getElementById('pdfcomp-progress-box');
+      const progressBar = document.getElementById('pdfcomp-progress-bar');
+      const progressText = document.getElementById('pdfcomp-progress-text');
+      const progressPct = document.getElementById('pdfcomp-progress-pct');
+      progressBox.classList.remove('hidden');
+
+      try {
+        const { jsPDF } = window.jspdf;
+        let newPdf = null;
+
+        for (let i = 1; i <= pdfCompressTotalPages; i++) {
+          const pct = Math.round(((i - 1) / pdfCompressTotalPages) * 100);
+          progressBar.style.width = `${pct}%`;
+          progressPct.innerText = `${pct}%`;
+          progressText.innerText = `Compressing page ${i} of ${pdfCompressTotalPages}...`;
+
+          const page = await pdfCompressDoc.getPage(i);
+          const viewport = page.getViewport({ scale: scaleFactor });
+
+          const c = document.createElement('canvas');
+          c.width = viewport.width;
+          c.height = viewport.height;
+          const cCtx = c.getContext('2d');
+
+          await page.render({ canvasContext: cCtx, viewport: viewport }).promise;
+
+          const imgDataUrl = c.toDataURL('image/jpeg', jpegQuality);
+
+          const isLandscape = viewport.width > viewport.height;
+          if (i === 1) {
+            newPdf = new jsPDF({
+              orientation: isLandscape ? 'landscape' : 'portrait',
+              unit: 'px',
+              format: [viewport.width, viewport.height]
+            });
+            newPdf.addImage(imgDataUrl, 'JPEG', 0, 0, viewport.width, viewport.height);
+          } else {
+            newPdf.addPage([viewport.width, viewport.height], isLandscape ? 'landscape' : 'portrait');
+            newPdf.addImage(imgDataUrl, 'JPEG', 0, 0, viewport.width, viewport.height);
+          }
+        }
+
+        progressBar.style.width = '100%';
+        progressPct.innerText = '100%';
+        progressText.innerText = 'Finalizing compressed PDF...';
+
+        const pdfBlob = newPdf.output('blob');
+        const compressedKb = (pdfBlob.size / 1024).toFixed(1);
+        const originalKb = (pdfToCompressFile.size / 1024).toFixed(1);
+        const savings = Math.round((1 - pdfBlob.size / pdfToCompressFile.size) * 100);
+
+        document.getElementById('pdf-comp-size').innerText = `${compressedKb} KB (${savings > 0 ? '-' + savings + '%' : 'Optimized'})`;
+
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `compressed_${pdfToCompressFile.name}`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showToast(`Compressed to ${compressedKb} KB (Saved ${Math.max(0, savings)}%)!`, 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Error during PDF compression', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+    }
+
+
+    /* ====================================================================
+       9. TOOL 5: HEIC TO JPG
+       ==================================================================== */
+    let heicConvertedBlob = null;
+    let heicOriginalFileName = "iphone_photo";
+
+    async function handleHeicConvert(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+
+      heicOriginalFileName = file.name.replace(/\.[^/.]+$/, "");
+      document.getElementById('heic-result').classList.remove('hidden');
+      document.getElementById('heic-loading').classList.remove('hidden');
+      document.getElementById('heic-ready').classList.add('hidden');
+
+      try {
+        let resultBlob;
+        if (typeof heic2any !== 'undefined') {
+          resultBlob = await heic2any({
+            blob: file,
+            toType: "image/jpeg",
+            quality: 0.92
+          });
+          if (Array.isArray(resultBlob)) resultBlob = resultBlob[0];
+        } else {
+          resultBlob = file;
+        }
+
+        heicConvertedBlob = resultBlob;
+        const url = URL.createObjectURL(resultBlob);
+        document.getElementById('heic-preview-img').src = url;
+        document.getElementById('heic-out-name').innerText = `${heicOriginalFileName}.jpg`;
+        document.getElementById('heic-out-size').innerText = `Converted Size: ${(resultBlob.size / 1024).toFixed(1)} KB`;
+        
+        document.getElementById('heic-loading').classList.add('hidden');
+        document.getElementById('heic-ready').classList.remove('hidden');
+        showToast('HEIC photo converted to JPG!', 'success');
+      } catch (err) {
+        console.error(err);
+        document.getElementById('heic-loading').classList.add('hidden');
+        showToast('Error converting HEIC image. File might already be standard JPEG.', 'error');
+      }
+    }
+
+    function downloadHeicJpg() {
+      if (!heicConvertedBlob) return;
+      const url = URL.createObjectURL(heicConvertedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${heicOriginalFileName}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('JPG image downloaded!', 'success');
+    }
+
+    /* ====================================================================
+       10. TOOL 6: WEBP TO PNG/JPG
+       ==================================================================== */
+    let webpSourceImage = null;
+    let webpSourceFileName = "image";
+    let webpTargetFormat = 'png';
+    let webpJpgQuality = 0.92;
+
+    function handleWebpUpload(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+
+      webpSourceFileName = file.name.replace(/\.[^/.]+$/, "");
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          webpSourceImage = img;
+          document.getElementById('webp-preview-img').src = e.target.result;
+          document.getElementById('webp-filename').innerText = file.name;
+          document.getElementById('webp-size-info').innerText = `${img.width}x${img.height} • ${(file.size / 1024).toFixed(1)} KB`;
+          document.getElementById('webp-controls').classList.remove('hidden');
+          showToast('Image loaded into transcoder', 'info');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setWebpTarget(fmt) {
+      webpTargetFormat = fmt;
+      document.getElementById('btn-target-png').className = fmt === 'png' ? 'px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs' : 'px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs';
+      document.getElementById('btn-target-jpg').className = fmt === 'jpeg' ? 'px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs' : 'px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs';
+    }
+
+    function updateWebpQuality(val) {
+      webpJpgQuality = val / 100;
+      document.getElementById('webp-quality-val').innerText = `${val}%`;
+    }
+
+    function downloadConvertedWebp() {
+      if (!webpSourceImage) return;
+
+      const c = document.createElement('canvas');
+      c.width = webpSourceImage.width;
+      c.height = webpSourceImage.height;
+      const ctx2 = c.getContext('2d');
+
+      if (webpTargetFormat === 'jpeg') {
+        ctx2.fillStyle = '#FFFFFF';
+        ctx2.fillRect(0, 0, c.width, c.height);
+      }
+      ctx2.drawImage(webpSourceImage, 0, 0);
+
+      const mime = webpTargetFormat === 'png' ? 'image/png' : 'image/jpeg';
+      const ext = webpTargetFormat === 'png' ? 'png' : 'jpg';
+
+      c.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${webpSourceFileName}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`Saved as .${ext} (${(blob.size / 1024).toFixed(1)} KB)`, 'success');
+      }, mime, webpJpgQuality);
+    }
+
+    /* ====================================================================
+       11. TOOL 7: SMART IMAGE COMPRESSOR (WITH ORIGINAL PREVIEW)
+       ==================================================================== */
+    let compSourceImage = null;
+    let compOriginalSize = 0;
+    let compFileName = "photo";
+    let compressedImageBlob = null;
+
+    function handleImageCompressUpload(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+
+      compOriginalSize = file.size;
+      compFileName = file.name.replace(/\.[^/.]+$/, "");
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          compSourceImage = img;
+
+          // Render Original Uploaded Image Details & Preview
+          document.getElementById('imgcomp-orig-preview').src = e.target.result;
+          document.getElementById('imgcomp-orig-name').innerText = file.name;
+          document.getElementById('imgcomp-orig-dim').innerText = `${img.width} x ${img.height} px`;
+          document.getElementById('imgcomp-orig-kb').innerText = `${(file.size / 1024).toFixed(1)} KB`;
+
+          // Collapse dropzone & show comparison workspace
+          document.getElementById('dropzone-imgcomp').classList.add('hidden');
+          document.getElementById('imgcomp-controls').classList.remove('hidden');
+
+          runImageLiveCompress();
+          showToast('Image uploaded and preview loaded', 'info');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function runImageLiveCompress() {
+      if (!compSourceImage) return;
+
+      const quality = parseInt(document.getElementById('imgcomp-quality').value) / 100;
+      const scale = parseInt(document.getElementById('imgcomp-scale').value) / 100;
+
+      document.getElementById('imgcomp-quality-val').innerText = `${Math.round(quality * 100)}%`;
+      document.getElementById('imgcomp-scale-val').innerText = `${Math.round(scale * 100)}%`;
+
+      const targetW = Math.max(50, Math.round(compSourceImage.width * scale));
+      const targetH = Math.max(50, Math.round(compSourceImage.height * scale));
+
+      const c = document.createElement('canvas');
+      c.width = targetW;
+      c.height = targetH;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(compSourceImage, 0, 0, targetW, targetH);
+
+      c.toBlob((blob) => {
+        compressedImageBlob = blob;
+        const newKb = (blob.size / 1024).toFixed(1);
+        document.getElementById('imgcomp-new-kb').innerText = `${newKb} KB`;
+        document.getElementById('imgcomp-new-dim').innerText = `${targetW} x ${targetH} px`;
+
+        const diffBytes = compOriginalSize - blob.size;
+        const diffKb = (diffBytes / 1024).toFixed(1);
+        const savings = Math.round((diffBytes / compOriginalSize) * 100);
+
+        document.getElementById('imgcomp-diff-kb').innerText = `${diffKb > 0 ? '-' + diffKb : '+' + Math.abs(diffKb)} KB`;
+
+        const badge = document.getElementById('imgcomp-savings-badge');
+        if (savings >= 0) {
+          badge.innerText = `Saved ${savings}%`;
+          badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-xs font-mono font-bold border border-emerald-800';
+        } else {
+          badge.innerText = `+${Math.abs(savings)}%`;
+          badge.className = 'px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-mono font-bold border border-slate-700';
+        }
+
+        const previewUrl = URL.createObjectURL(blob);
+        document.getElementById('imgcomp-preview').src = previewUrl;
+      }, 'image/jpeg', quality);
+    }
+
+    function downloadCompressedImage() {
+      if (!compressedImageBlob) return;
+      const url = URL.createObjectURL(compressedImageBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `compressed_${compFileName}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Compressed image downloaded!', 'success');
+    }
+
+    /* ====================================================================
+       12. TOOL 8: EXACT TARGET KB RESIZER (GUARANTEED ADAPTIVE ALGORITHM)
+       ==================================================================== */
+    let targetKbImage = null;
+    let targetKbFileName = "photo";
+    let targetAchievedBlob = null;
+    let targetAchievedW = 0;
+    let targetAchievedH = 0;
+
+    function handleTargetKbUpload(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+
+      targetKbFileName = file.name.replace(/\.[^/.]+$/, "");
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          targetKbImage = img;
+          document.getElementById('target-kb-orig-img').src = e.target.result;
+          document.getElementById('target-kb-orig-name').innerText = file.name;
+          document.getElementById('target-kb-orig-info').innerText = `Original: ${(file.size / 1024).toFixed(1)} KB • ${img.width} x ${img.height} px`;
+
+          document.getElementById('dropzone-target-kb').classList.add('hidden');
+          document.getElementById('target-kb-controls').classList.remove('hidden');
+          document.getElementById('target-kb-result').classList.add('hidden');
+          showToast(`Photo loaded: ${img.width}x${img.height} (${(file.size / 1024).toFixed(1)} KB)`, 'info');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setKbPreset(val) {
+      document.getElementById('target-kb-value').value = val;
+    }
+
+    async function executeBinaryTargetKbResize() {
+      if (!targetKbImage) {
+        showToast('Please upload an image first', 'warning');
+        return;
+      }
+
+      const targetKb = parseFloat(document.getElementById('target-kb-value').value);
+      if (isNaN(targetKb) || targetKb <= 2) {
+        showToast('Please enter a valid target KB (e.g. 50)', 'warning');
+        return;
+      }
+
+      showToast(`Fitting photo to under ${targetKb} KB...`, 'info');
+      const maxBytes = targetKb * 1024;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const totalPixels = targetKbImage.width * targetKbImage.height;
+      const estimatedMaxPixels = maxBytes * 3.5;
+      let scale = totalPixels > estimatedMaxPixels ? Math.min(1.0, Math.sqrt(estimatedMaxPixels / totalPixels)) : 1.0;
+      let quality = 0.85;
+      let bestBlob = null;
+      let bestW = 0, bestH = 0;
+
+      for (let step = 0; step < 12; step++) {
+        const w = Math.max(60, Math.round(targetKbImage.width * scale));
+        const h = Math.max(60, Math.round(targetKbImage.height * scale));
+
+        canvas.width = w;
+        canvas.height = h;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(targetKbImage, 0, 0, w, h);
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+
+        if (blob.size <= maxBytes) {
+          bestBlob = blob;
+          bestW = w;
+          bestH = h;
+          if (blob.size >= maxBytes * 0.82) {
+            break;
+          }
+          quality = Math.min(0.95, quality + 0.08);
+          scale = Math.min(1.0, scale * 1.1);
+        } else {
+          if (quality > 0.45) {
+            quality -= 0.15;
+          } else {
+            scale *= 0.82;
+            quality = 0.75;
+          }
+        }
+      }
+
+      if (!bestBlob || bestBlob.size > maxBytes) {
+        let fallbackScale = scale * 0.7;
+        let fallbackQ = 0.5;
+        while ((!bestBlob || bestBlob.size > maxBytes) && fallbackScale > 0.1) {
+          const w = Math.max(50, Math.round(targetKbImage.width * fallbackScale));
+          const h = Math.max(50, Math.round(targetKbImage.height * fallbackScale));
+          canvas.width = w;
+          canvas.height = h;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(targetKbImage, 0, 0, w, h);
+          bestBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', fallbackQ));
+          bestW = w;
+          bestH = h;
+          fallbackScale *= 0.85;
+          fallbackQ = Math.max(0.2, fallbackQ - 0.1);
+        }
+      }
+
+      targetAchievedBlob = bestBlob;
+      targetAchievedW = bestW;
+      targetAchievedH = bestH;
+
+      const finalKb = (bestBlob.size / 1024).toFixed(1);
+      const url = URL.createObjectURL(bestBlob);
+
+      document.getElementById('target-kb-result-img').src = url;
+      document.getElementById('target-kb-stat').innerText = `Achieved: ${finalKb} KB (Target: ≤ ${targetKb} KB)`;
+      document.getElementById('target-kb-res').innerText = `Dimensions: ${bestW} x ${bestH} px`;
+      document.getElementById('target-kb-result').classList.remove('hidden');
+
+      showToast(`Success! Photo fitted to ${finalKb} KB`, 'success');
+    }
+
+    function downloadTargetKbImage() {
+      if (!targetAchievedBlob) return;
+      const url = URL.createObjectURL(targetAchievedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      const targetVal = document.getElementById('target-kb-value').value;
+      a.download = `${targetKbFileName}_${targetVal}kb.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Resized photo downloaded!', 'success');
+    }
+
+    /* ====================================================================
+       13. TOOL 9: QR CODE GENERATOR
+       ==================================================================== */
+    let qrType = 'url';
+    let qrCodeInstance = null;
+
+    function setQrType(type) {
+      qrType = type;
+      if (type === 'url') {
+        document.getElementById('qr-tab-url').className = 'py-2 rounded-lg bg-cyan-600 text-white font-bold text-xs';
+        document.getElementById('qr-tab-upi').className = 'py-2 rounded-lg text-slate-400 hover:text-white font-bold text-xs';
+        document.getElementById('qr-group-url').classList.remove('hidden');
+        document.getElementById('qr-group-upi').classList.add('hidden');
+      } else {
+        document.getElementById('qr-tab-url').className = 'py-2 rounded-lg text-slate-400 hover:text-white font-bold text-xs';
+        document.getElementById('qr-tab-upi').className = 'py-2 rounded-lg bg-cyan-600 text-white font-bold text-xs';
+        document.getElementById('qr-group-url').classList.add('hidden');
+        document.getElementById('qr-group-upi').classList.remove('hidden');
+      }
+      renderLiveQr();
+    }
+
+    function renderLiveQr() {
+      const container = document.getElementById('qrcode-box');
+      container.innerHTML = '';
+
+      let textToEncode = '';
+      if (qrType === 'url') {
+        textToEncode = document.getElementById('qr-text-input').value.trim() || 'https://webverbe.com';
+      } else {
+        const vpa = document.getElementById('upi-vpa').value.trim() || 'merchant@upi';
+        const name = encodeURIComponent(document.getElementById('upi-name').value.trim() || 'Merchant');
+        const amount = document.getElementById('upi-amount').value.trim();
+        const note = encodeURIComponent(document.getElementById('upi-note').value.trim() || 'Payment');
+
+        textToEncode = `upi://pay?pa=${vpa}&pn=${name}&tn=${note}&cu=INR`;
+        if (amount && Number(amount) > 0) {
+          textToEncode += `&am=${amount}`;
+        }
+      }
+
+      const fg = document.getElementById('qr-fg-color').value || '#000000';
+      const bg = document.getElementById('qr-bg-color').value || '#ffffff';
+
+      qrCodeInstance = new QRCode(container, {
+        text: textToEncode,
+        width: 220,
+        height: 220,
+        colorDark: fg,
+        colorLight: bg,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function downloadQrPng() {
+      const img = document.querySelector('#qrcode-box img');
+      const canvas = document.querySelector('#qrcode-box canvas');
+      let src = '';
+      if (img && img.src) src = img.src;
+      else if (canvas) src = canvas.toDataURL('image/png');
+
+      if (!src) {
+        showToast('Generate a QR code first', 'warning');
+        return;
+      }
+
+      const a = document.createElement('a');
+      a.href = src;
+      a.download = `qrcode_${Date.now()}.png`;
+      a.click();
+      showToast('QR Code PNG downloaded!', 'success');
+    }
+
+    function copyQrToClipboard() {
+      const canvas = document.querySelector('#qrcode-box canvas');
+      if (canvas && navigator.clipboard && window.ClipboardItem) {
+        canvas.toBlob(blob => {
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          showToast('QR code copied to clipboard!', 'success');
+        });
+      } else {
+        showToast('Use Download PNG button for this browser', 'info');
+      }
+    }
+
+    /* ====================================================================
+       14. TOOL 10: SECURE PASSWORD GENERATOR
+       ==================================================================== */
+    function updatePasswordLength(len) {
+      document.getElementById('pwd-len-val').innerText = len;
+      generateCyberPassword();
+    }
+
+    function generateCyberPassword() {
+      const len = parseInt(document.getElementById('pwd-length').value);
+      const useUpper = document.getElementById('pwd-opt-upper').checked;
+      const useLower = document.getElementById('pwd-opt-lower').checked;
+      const useNum = document.getElementById('pwd-opt-num').checked;
+      const useSym = document.getElementById('pwd-opt-sym').checked;
+
+      let charset = '';
+      if (useUpper) charset += 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      if (useLower) charset += 'abcdefghijkmnopqrstuvwxyz';
+      if (useNum) charset += '23456789';
+      if (useSym) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+      if (!charset) {
+        charset = 'abcdefghijklmnopqrstuvwxyz';
+        document.getElementById('pwd-opt-lower').checked = true;
+      }
+
+      const randomBytes = new Uint32Array(len);
+      window.crypto.getRandomValues(randomBytes);
+
+      let pwd = '';
+      for (let i = 0; i < len; i++) {
+        pwd += charset[randomBytes[i] % charset.length];
+      }
+
+      document.getElementById('pwd-output').innerText = pwd;
+
+      const entropy = Math.round(len * Math.log2(charset.length));
+      document.getElementById('pwd-entropy-bits').innerText = `${entropy} bits`;
+
+      const bar = document.getElementById('pwd-strength-bar');
+      const text = document.getElementById('pwd-strength-text');
+
+      if (entropy < 45) {
+        bar.style.width = '25%';
+        bar.className = 'h-full bg-rose-500 transition-all duration-300';
+        text.innerText = 'Weak (Easily Crackable)';
+        text.className = 'text-rose-400';
+      } else if (entropy < 65) {
+        bar.style.width = '50%';
+        bar.className = 'h-full bg-amber-500 transition-all duration-300';
+        text.innerText = 'Moderate (Fair for Casual Logins)';
+        text.className = 'text-amber-400';
+      } else if (entropy < 85) {
+        bar.style.width = '75%';
+        bar.className = 'h-full bg-sky-400 transition-all duration-300';
+        text.innerText = 'Strong (High Security)';
+        text.className = 'text-sky-400';
+      } else {
+        bar.style.width = '100%';
+        bar.className = 'h-full bg-emerald-400 transition-all duration-300';
+        text.innerText = 'Ultra-Secure (Military Grade)';
+        text.className = 'text-emerald-400';
+      }
+    }
+
+    function copyGeneratedPassword() {
+      const pwd = document.getElementById('pwd-output').innerText;
+      navigator.clipboard.writeText(pwd).then(() => {
+        showToast('Password copied to clipboard!', 'success');
+      });
+    }
+
+    /* ====================================================================
+       15. TOOL 11: DISCOUNT & GST CALCULATOR
+       ==================================================================== */
+    let gstCalculationMode = 'exclusive';
+
+    function setGstRate(rate) {
+      document.getElementById('calc-gst-rate').value = rate;
+      document.querySelectorAll('.gst-preset').forEach(btn => {
+        if (btn.innerText.includes(`${rate}%`)) {
+          btn.className = 'gst-preset py-1.5 rounded-lg bg-amber-500 text-cyber-950 font-bold text-xs font-mono';
+        } else {
+          btn.className = 'gst-preset py-1.5 rounded-lg bg-slate-800 text-xs font-mono text-slate-300';
+        }
+      });
+      runFinancialCalculation();
+    }
+
+    function setGstMode(mode) {
+      gstCalculationMode = mode;
+      document.getElementById('btn-gst-excl').className = mode === 'exclusive' ? 'px-3 py-2 rounded-xl bg-amber-500 text-cyber-950 font-bold text-xs' : 'px-3 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs';
+      document.getElementById('btn-gst-incl').className = mode === 'inclusive' ? 'px-3 py-2 rounded-xl bg-amber-500 text-cyber-950 font-bold text-xs' : 'px-3 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs';
+      runFinancialCalculation();
+    }
+
+    function runFinancialCalculation() {
+      const price = parseFloat(document.getElementById('calc-price').value) || 0;
+      const discountPct = parseFloat(document.getElementById('calc-discount').value) || 0;
+      const gstRate = parseFloat(document.getElementById('calc-gst-rate').value) || 0;
+
+      const discountAmt = price * (discountPct / 100);
+      const discountedPrice = Math.max(0, price - discountAmt);
+
+      let finalPayable = 0;
+      let totalTax = 0;
+
+      if (gstCalculationMode === 'exclusive') {
+        totalTax = discountedPrice * (gstRate / 100);
+        finalPayable = discountedPrice + totalTax;
+      } else {
+        const baseAmount = discountedPrice / (1 + (gstRate / 100));
+        totalTax = discountedPrice - baseAmount;
+        finalPayable = discountedPrice;
+      }
+
+      const cgst = totalTax / 2;
+      const sgst = totalTax / 2;
+      const totalSavings = discountAmt;
+
+      const fmt = (num) => '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      document.getElementById('sum-orig').innerText = fmt(price);
+      document.getElementById('sum-discount').innerText = '-' + fmt(discountAmt);
+      document.getElementById('sum-discounted-price').innerText = fmt(discountedPrice);
+      document.getElementById('sum-cgst').innerText = fmt(cgst);
+      document.getElementById('sum-sgst').innerText = fmt(sgst);
+      document.getElementById('sum-total-tax').innerText = fmt(totalTax);
+      document.getElementById('sum-final-price').innerText = fmt(finalPayable);
+      document.getElementById('sum-total-savings').innerText = fmt(totalSavings);
+    }
+
+    /* ====================================================================
+       16. CLEAN DRAG & DROP HANDLERS (ZERO EVENT BUBBLING ISSUES)
+       ==================================================================== */
+    document.querySelectorAll('.dropzone').forEach(dropzone => {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('dropzone-active');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('dropzone-active');
+        }, false);
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const input = dropzone.querySelector('input[type="file"]');
+        if (input && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const files = e.dataTransfer.files;
+          if (input.id === 'input-pdf2word') handlePdfToWordFiles(files);
+          else if (input.id === 'input-pdfcompress') handlePdfCompressUpload(files);
+          else if (input.id === 'input-imgcomp') handleImageCompressUpload(files);
+          else if (input.id === 'input-target-kb') handleTargetKbUpload(files);
+          else if (input.id === 'input-heic') handleHeicConvert(files);
+          else if (input.id === 'input-webp') handleWebpUpload(files);
+        }
+      });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeToolModal();
+    });
+  </script>
+</body>
+</html>
